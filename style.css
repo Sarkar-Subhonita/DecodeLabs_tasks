@@ -269,6 +269,52 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--clr-primary-light);
 }
 
+/* Hamburger Menu Button — hidden on desktop */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 8px;
+    z-index: 1010;
+    transition: border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.hamburger:hover {
+    border-color: var(--clr-primary-light);
+}
+
+.hamburger-bar {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--clr-text);
+    border-radius: 2px;
+    transition: all var(--duration-base) var(--ease-smooth);
+    transform-origin: center;
+}
+
+/* Animated X state */
+.hamburger.active .hamburger-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger.active .hamburger-bar:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.hamburger.active .hamburger-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
 .nav-links {
     display: flex;
     align-items: center;
@@ -373,8 +419,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-image-container {
     position: relative;
-    width: 380px;
-    height: 380px;
+    width: min(380px, 70vw);
+    height: min(380px, 70vw);
     border-radius: var(--radius-full);
     overflow: hidden;
 }
@@ -930,11 +976,102 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* ── RESPONSIVE — Tablet (max-width: 992px) ───────────────── */
-@media (max-width: 992px) {
+/* ================================================================
+   RESPONSIVE DESIGN
+   Breakpoints:
+   - 1024px  → Large tablets / small desktops
+   - 768px   → Tablets (major layout shift + hamburger)
+   - 480px   → Mobile phones
+   ================================================================ */
+
+/* ── RESPONSIVE — Large Tablet / Small Desktop (≤1024px) ──── */
+@media (max-width: 1024px) {
     :root {
         --fs-4xl: 2.75rem;
         --fs-3xl: 2rem;
+    }
+
+    .hero-content {
+        gap: var(--space-2xl);
+    }
+
+    .hero-image-container {
+        width: min(320px, 60vw);
+        height: min(320px, 60vw);
+    }
+
+    .skills-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* ── RESPONSIVE — Tablet (≤768px) ─────────────────────────── */
+@media (max-width: 768px) {
+    :root {
+        --fs-4xl: 2.25rem;
+        --fs-3xl: 1.75rem;
+        --fs-2xl: 1.5rem;
+        --fs-xl:  1.25rem;
+        --space-5xl: 5rem;
+        --space-4xl: 4rem;
+    }
+
+    /* ── Hamburger visible ── */
+    .hamburger {
+        display: flex;
+    }
+
+    /* ── Mobile nav dropdown ── */
+    .nav-links {
+        position: absolute;
+        top: var(--header-height);
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        background: rgba(10, 10, 15, 0.97);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--clr-border);
+        padding: var(--space-md) 0;
+        transform: translateY(-120%);
+        opacity: 0;
+        visibility: hidden;
+        transition: transform var(--duration-base) var(--ease-smooth),
+                    opacity var(--duration-base) var(--ease-smooth),
+                    visibility var(--duration-base);
+        z-index: 999;
+    }
+
+    .site-header.nav-open .nav-links {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .nav-link {
+        display: block;
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--fs-base);
+        border-radius: 0;
+        text-align: center;
+        transition: background var(--duration-fast) var(--ease-smooth),
+                    color var(--duration-fast) var(--ease-smooth);
+    }
+
+    .nav-link:hover {
+        background: var(--clr-surface);
+    }
+
+    .nav-link::after {
+        display: none;
+    }
+
+    /* ── Hero ── */
+    .hero {
+        padding: var(--space-2xl) var(--space-lg);
     }
 
     .hero-content {
@@ -961,114 +1098,147 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     .hero-image-container {
-        width: 280px;
-        height: 280px;
+        width: min(260px, 55vw);
+        height: min(260px, 55vw);
     }
 
+    /* ── About ── */
     .about-grid {
         grid-template-columns: 1fr;
         gap: var(--space-2xl);
+    }
+
+    .about-image-wrapper {
+        max-width: 480px;
+        margin: 0 auto;
     }
 
     .about-image-accent {
         display: none;
     }
 
-    .skills-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
+    /* ── Projects ── */
     .projects-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
+    /* ── Contact ── */
     .contact-grid {
         grid-template-columns: 1fr;
+        gap: var(--space-2xl);
+    }
+
+    /* ── Section spacing ── */
+    .section-container {
+        padding: 0 var(--space-lg);
+    }
+
+    .section-header {
+        margin-bottom: var(--space-2xl);
     }
 }
 
 
-/* ── RESPONSIVE — Mobile (max-width: 640px) ───────────────── */
-@media (max-width: 640px) {
+/* ── RESPONSIVE — Mobile (≤480px) ─────────────────────────── */
+@media (max-width: 480px) {
     :root {
-        --fs-4xl: 2.25rem;
-        --fs-3xl: 1.75rem;
-        --fs-2xl: 1.5rem;
-        --space-5xl: 5rem;
+        --fs-4xl: 1.85rem;
+        --fs-3xl: 1.5rem;
+        --fs-2xl: 1.25rem;
+        --fs-xl:  1.125rem;
+        --fs-lg:  1.05rem;
+        --space-5xl: 3.5rem;
+        --space-4xl: 2.5rem;
+        --space-3xl: 2rem;
     }
 
+    /* ── Navbar ── */
     .navbar {
         padding: 0 var(--space-md);
     }
 
-    .nav-links {
-        gap: 0;
-    }
-
-    .nav-link {
-        padding: var(--space-xs) var(--space-sm);
-        font-size: var(--fs-xs);
-    }
-
+    /* ── Hero ── */
     .hero {
-        padding-left: var(--space-md);
-        padding-right: var(--space-md);
+        padding: var(--space-xl) var(--space-md);
+        min-height: auto;
     }
 
     .hero-image-container {
-        width: 220px;
-        height: 220px;
+        width: min(200px, 55vw);
+        height: min(200px, 55vw);
+    }
+
+    .hero-heading {
+        font-size: var(--fs-4xl);
+    }
+
+    .hero-description {
+        font-size: var(--fs-sm);
     }
 
     .hero-buttons {
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
     }
 
-    .btn {
+    .hero-buttons .btn {
         width: 100%;
         justify-content: center;
     }
 
-    .section-container {
-        padding: 0 var(--space-md);
-    }
-
-    .skills-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .projects-grid {
-        grid-template-columns: 1fr;
-    }
-
+    /* ── About ── */
     .about-stats {
-        gap: var(--space-lg);
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: flex-start;
     }
 
     .stat-number {
         font-size: var(--fs-xl);
     }
 
+    /* ── Skills ── */
+    .skills-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    .skill-card {
+        padding: var(--space-xl) var(--space-lg);
+    }
+
+    /* ── Projects ── */
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+
+    .project-info {
+        padding: var(--space-lg);
+    }
+
+    /* ── Contact ── */
     .contact-form {
         padding: var(--space-lg);
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+        padding: var(--space-2xl) var(--space-md) var(--space-lg);
     }
 
     .footer-links {
         gap: var(--space-md);
     }
-}
 
-
-/* ── RESPONSIVE — Very small (max-width: 400px) ──────────── */
-@media (max-width: 400px) {
-    .nav-links {
-        flex-wrap: wrap;
-        justify-content: center;
+    /* ── Section spacing ── */
+    .section-container {
+        padding: 0 var(--space-md);
     }
 
-    .about-stats {
-        flex-direction: column;
-        gap: var(--space-md);
+    /* ── Global button fix ── */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: var(--fs-sm);
     }
 }
