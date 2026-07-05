@@ -338,6 +338,7 @@ button {
 }
 
 .nav-link {
+    position: relative;
     font-size: 0.88rem;
     font-weight: var(--fw-medium);
     color: var(--gray-500);
@@ -960,6 +961,284 @@ button {
 }
 
 /* --------------------------------------------------------------------------
+   TRUSTED BY — Brand Logos Strip
+   Shows social proof with university/institution names
+   -------------------------------------------------------------------------- */
+.trusted-by {
+    padding: var(--space-12) 0 var(--space-10);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+    position: relative;
+}
+
+.trusted-label {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: var(--fw-medium);
+    color: var(--gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: var(--space-6);
+}
+
+.trusted-logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-10);
+    flex-wrap: wrap;
+}
+
+/* Each brand name styled as a subtle wordmark */
+.brand-logo {
+    font-size: 1.1rem;
+    font-weight: var(--fw-bold);
+    color: var(--gray-300);
+    letter-spacing: -0.01em;
+    transition: color var(--t-base);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.brand-logo:hover {
+    color: var(--purple-400);
+}
+
+/* --------------------------------------------------------------------------
+   SECTION ILLUSTRATION — Image between header and cards
+   -------------------------------------------------------------------------- */
+.section-illustration {
+    display: block;
+    max-width: 520px;
+    height: auto;
+    margin: var(--space-8) auto var(--space-4);
+    border-radius: var(--radius-2xl);
+    object-fit: cover;
+    box-shadow: var(--shadow-lg), var(--shadow-glow-purple);
+    border: 1px solid rgba(124, 58, 237, 0.08);
+}
+
+/* Contact section illustration */
+.contact-illustration {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+    filter: drop-shadow(0 4px 16px rgba(124, 58, 237, 0.08));
+}
+
+/* --------------------------------------------------------------------------
+   HOW IT WORKS — 3-Step Process Section
+   Horizontal cards with numbered steps and connector arrows
+   -------------------------------------------------------------------------- */
+.how-it-works {
+    padding: var(--space-24) 0;
+    background: linear-gradient(180deg,
+            transparent 0%,
+            rgba(124, 58, 237, 0.015) 50%,
+            transparent 100%);
+}
+
+.steps-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
+}
+
+.step-card {
+    position: relative;
+    background: white;
+    border: 1px solid var(--gray-100);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8) var(--space-6);
+    text-align: center;
+    flex: 1;
+    max-width: 320px;
+    box-shadow: var(--shadow-card);
+    transition: all var(--t-base);
+    overflow: hidden;
+}
+
+/* Gradient top border on hover */
+.step-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+    transform: scaleX(0);
+    transition: transform var(--t-base);
+}
+
+.step-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.step-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* Large step number watermark */
+.step-number {
+    font-size: 4rem;
+    font-weight: var(--fw-black);
+    line-height: 1;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.1;
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-4);
+    font-family: var(--font-mono);
+    pointer-events: none;
+}
+
+.step-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(59, 130, 246, 0.06));
+    color: var(--purple-600);
+    margin-bottom: var(--space-5);
+    border: 1px solid rgba(124, 58, 237, 0.08);
+}
+
+.step-title {
+    font-size: 1.1rem;
+    font-weight: var(--fw-bold);
+    color: var(--gray-900);
+    margin-bottom: var(--space-3);
+    letter-spacing: -0.01em;
+}
+
+.step-description {
+    font-size: 0.88rem;
+    color: var(--gray-500);
+    line-height: 1.7;
+}
+
+/* Dashed connector arrow between steps */
+.step-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--purple-400);
+}
+
+.step-connector svg {
+    width: 48px;
+    height: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   CTA BANNER — Final Call to Action before footer
+   Full-width gradient card with centered content
+   -------------------------------------------------------------------------- */
+.cta-banner {
+    padding: var(--space-16) 0 var(--space-24);
+}
+
+.cta-content {
+    background: var(--gradient-primary);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-16) var(--space-12);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(124, 58, 237, 0.2);
+}
+
+/* Decorative glow circles */
+.cta-content::before,
+.cta-content::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.cta-content::before {
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.06);
+    top: -100px;
+    left: -60px;
+}
+
+.cta-content::after {
+    width: 250px;
+    height: 250px;
+    background: rgba(255, 255, 255, 0.04);
+    bottom: -80px;
+    right: -40px;
+}
+
+.cta-text {
+    position: relative;
+    z-index: 1;
+    margin-bottom: var(--space-8);
+}
+
+.cta-heading {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: var(--fw-extrabold);
+    color: white;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: var(--space-4);
+}
+
+/* Override gradient-text to show white-to-light-purple inside the CTA */
+.cta-heading .gradient-text {
+    background: linear-gradient(135deg, #e0d4ff, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.cta-description {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.cta-actions {
+    position: relative;
+    z-index: 1;
+}
+
+/* White CTA button (overrides .btn-primary inside the banner) */
+.cta-actions .btn-primary {
+    background: white;
+    color: var(--purple-700);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.cta-actions .btn-primary:hover {
+    background: var(--gray-50);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+}
+
+.cta-note {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: var(--space-4);
+}
+
+/* --------------------------------------------------------------------------
    DASHBOARD PREVIEW SECTION
    -------------------------------------------------------------------------- */
 .dashboard-section {
@@ -1456,6 +1735,8 @@ button {
    -------------------------------------------------------------------------- */
 .testimonials {
     padding: var(--space-24) 0;
+    position: relative;
+    overflow: hidden;
     background: linear-gradient(180deg,
             transparent 0%,
             rgba(124, 58, 237, 0.015) 50%,
@@ -1492,6 +1773,7 @@ button {
 }
 
 .testimonial-text {
+    position: relative;
     font-size: 0.95rem;
     color: var(--gray-600);
     line-height: 1.75;
@@ -1900,6 +2182,20 @@ button {
         gap: var(--space-10);
     }
 
+    /* Steps stack with connectors still visible but smaller */
+    .steps-grid {
+        gap: var(--space-4);
+    }
+
+    .step-card {
+        padding: var(--space-6) var(--space-5);
+    }
+
+    /* Logos wrap tighter */
+    .trusted-logos {
+        gap: var(--space-6);
+    }
+
     .footer-grid {
         grid-template-columns: 1fr 1fr 1fr;
         gap: var(--space-8);
@@ -2042,6 +2338,35 @@ button {
         gap: var(--space-4);
         text-align: center;
     }
+
+    /* Steps go vertical on mobile */
+    .steps-grid {
+        flex-direction: column;
+        gap: var(--space-5);
+    }
+
+    .step-connector {
+        transform: rotate(90deg);
+    }
+
+    .step-card {
+        max-width: 100%;
+    }
+
+    /* CTA smaller padding */
+    .cta-content {
+        padding: var(--space-10) var(--space-6);
+    }
+
+    /* Contact illustration hidden on mobile for space */
+    .contact-illustration {
+        display: none;
+    }
+
+    /* Section illustration smaller */
+    .section-illustration {
+        max-width: 280px;
+    }
 }
 
 /* Small mobile */
@@ -2102,4 +2427,169 @@ button {
     html {
         scroll-behavior: auto;
     }
+}
+
+/* --------------------------------------------------------------------------
+   PREMIUM VISUAL ENHANCEMENTS
+   Animated underlines, gradient orbs, enhanced micro-interactions
+   -------------------------------------------------------------------------- */
+
+/* === Animated gradient underline for section titles === */
+.section-title::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--gradient-primary);
+    margin: var(--space-4) auto 0;
+    border-radius: var(--radius-full);
+    transition: width var(--t-base);
+}
+
+.section-header:hover .section-title::after {
+    width: 120px;
+}
+
+/* === Hero badge shimmer animation === */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.hero-badge {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-badge::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite ease-in-out;
+    pointer-events: none;
+}
+
+/* === Feature card gradient border glow on hover === */
+.feature-card:hover {
+    border-color: rgba(124, 58, 237, 0.15);
+    background: rgba(255, 255, 255, 0.75);
+}
+
+/* === Step card gradient border on hover === */
+.step-card:hover .step-icon-wrap {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.12));
+    border-color: rgba(124, 58, 237, 0.15);
+}
+
+/* === Enhanced button press effect === */
+.btn-primary:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.05s;
+}
+
+.btn-outline:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.05s;
+}
+
+/* === Testimonial card quote mark decoration === */
+.testimonial-text::before {
+    font-size: 3.5rem;
+    line-height: 1;
+    opacity: 0.08;
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    font-family: Georgia, serif;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* === Stats card count pulse on hover === */
+.stat-card:hover .stat-number {
+    letter-spacing: 0.02em;
+}
+
+/* === FAQ card hover accent === */
+.faq-card:hover {
+    border-left: 3px solid var(--purple-400);
+}
+
+/* === Nav link hover animated underline === */
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 70%;
+    height: 2px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
+    transition: transform var(--t-base);
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    transform: translateX(-50%) scaleX(1);
+}
+
+/* === Floating decorative gradient orb — Features section === */
+.features::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.04) 0%, transparent 70%);
+    top: -200px;
+    right: -200px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* === Floating decorative gradient orb — Testimonials section === */
+.testimonials::before {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.04) 0%, transparent 70%);
+    bottom: -100px;
+    left: -150px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* === Smooth focus ring for accessibility === */
+*:focus-visible {
+    outline: 2px solid var(--purple-400);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+}
+
+/* === Form focus enhanced ring === */
+.contact-form input:focus,
+.contact-form textarea:focus {
+    border-color: var(--purple-400);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* === Selection color === */
+::selection {
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--gray-900);
 }

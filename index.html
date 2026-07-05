@@ -6,15 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="StudyHub — A modern student productivity platform for notes, tasks, mind maps, and AI-powered study tools. Boost your academic performance.">
+    <meta name="keywords" content="study, productivity, notes, tasks, student, planner, AI, dashboard">
+    <meta name="author" content="StudyHub Team">
     <title>StudyHub — Student Productivity Platform</title>
 
-    <!-- Google Fonts -->
+    <!-- Favicon (SVG inline data URI for a purple gradient book icon) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='8' fill='url(%23g)'/%3E%3Cpath d='M8 10h12M8 14h8M8 18h10' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='28' y2='28'%3E%3Cstop stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E">
+
+    <!-- Google Fonts — Inter for body, JetBrains Mono for code/badges -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap"
         rel="stylesheet">
 
+    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -204,6 +210,22 @@
             </div>
         </section>
 
+        <!-- ===== TRUSTED BY — Brand Logos Strip ===== -->
+        <section class="trusted-by" id="trusted-by" aria-label="Trusted by leading institutions">
+            <div class="container">
+                <p class="trusted-label">Trusted by students at top universities</p>
+                <div class="trusted-logos">
+                    <!-- CSS-only logo placeholders styled as brand wordmarks -->
+                    <div class="brand-logo">IIT Delhi</div>
+                    <div class="brand-logo">AIIMS</div>
+                    <div class="brand-logo">NIT Trichy</div>
+                    <div class="brand-logo">BITS Pilani</div>
+                    <div class="brand-logo">ISB</div>
+                    <div class="brand-logo">VIT</div>
+                </div>
+            </div>
+        </section>
+
         <!-- ===== FEATURES SECTION ===== -->
         <section class="features" id="features">
             <div class="container">
@@ -214,6 +236,13 @@
                         Powerful tools designed specifically for students. From note-taking to AI-assisted
                         learning — all in one beautiful platform.
                     </p>
+                    <!-- Features illustration image -->
+                    <img src="images/features-illustration.png"
+                         alt="Illustration of a student workspace with books, lightbulb, and mind map"
+                         class="section-illustration"
+                         width="480"
+                         height="320"
+                         loading="lazy">
                 </div>
 
                 <div class="features-grid">
@@ -374,6 +403,100 @@
                                 <polyline points="12 5 19 12 12 19" />
                             </svg>
                         </a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== HOW IT WORKS — 3-Step Process ===== -->
+        <section class="how-it-works" id="how-it-works">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">How It Works</span>
+                    <h2 class="section-title">Get Started in <span class="gradient-text">3 Simple Steps</span></h2>
+                    <p class="section-subtitle">
+                        From sign-up to academic success — StudyHub makes it effortless.
+                    </p>
+                </div>
+
+                <div class="steps-grid">
+                    <!-- Step 1 -->
+                    <article class="step-card">
+                        <div class="step-number">01</div>
+                        <div class="step-icon-wrap">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        <h3 class="step-title">Create Your Account</h3>
+                        <p class="step-description">
+                            Sign up for free in seconds. No credit card required — just your
+                            email and you're ready to go.
+                        </p>
+                    </article>
+
+                    <!-- Connector line -->
+                    <div class="step-connector" aria-hidden="true">
+                        <svg width="60" height="24" viewBox="0 0 60 24" fill="none">
+                            <path d="M0 12h50" stroke="url(#conn-grad-1)" stroke-width="2" stroke-dasharray="6 4" />
+                            <polygon points="50,6 60,12 50,18" fill="var(--purple-400)" />
+                            <defs>
+                                <linearGradient id="conn-grad-1" x1="0" y1="0" x2="60" y2="0">
+                                    <stop stop-color="var(--purple-400)" />
+                                    <stop offset="1" stop-color="var(--blue-400)" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <article class="step-card">
+                        <div class="step-number">02</div>
+                        <div class="step-icon-wrap">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9" />
+                                <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                            </svg>
+                        </div>
+                        <h3 class="step-title">Organize Your Studies</h3>
+                        <p class="step-description">
+                            Add notes, create task lists, set up timers, and build
+                            your personalized study workflow.
+                        </p>
+                    </article>
+
+                    <!-- Connector line -->
+                    <div class="step-connector" aria-hidden="true">
+                        <svg width="60" height="24" viewBox="0 0 60 24" fill="none">
+                            <path d="M0 12h50" stroke="url(#conn-grad-2)" stroke-width="2" stroke-dasharray="6 4" />
+                            <polygon points="50,6 60,12 50,18" fill="var(--blue-400)" />
+                            <defs>
+                                <linearGradient id="conn-grad-2" x1="0" y1="0" x2="60" y2="0">
+                                    <stop stop-color="var(--blue-400)" />
+                                    <stop offset="1" stop-color="var(--cyan-400)" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <article class="step-card">
+                        <div class="step-number">03</div>
+                        <div class="step-icon-wrap">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                        </div>
+                        <h3 class="step-title">Achieve Your Goals</h3>
+                        <p class="step-description">
+                            Track your progress, build streaks, and watch your grades
+                            improve with data-driven insights.
+                        </p>
                     </article>
                 </div>
             </div>
@@ -893,6 +1016,13 @@
                             Whether you're a student with a feature request, an educator exploring
                             partnerships, or just curious — reach out and we'll get back to you within 24 hours.
                         </p>
+                        <!-- Contact section illustration -->
+                        <img src="images/hero-illustration.png"
+                             alt="Student productivity dashboard illustration"
+                             class="contact-illustration"
+                             width="400"
+                             height="280"
+                             loading="lazy">
                         <div class="contact-details">
                             <div class="contact-detail-item">
                                 <div class="contact-detail-icon">
@@ -996,6 +1126,32 @@
                             </svg>
                         </button>
                     </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== CTA BANNER — Final Call to Action ===== -->
+        <section class="cta-banner" id="cta">
+            <div class="container">
+                <div class="cta-content">
+                    <div class="cta-text">
+                        <h2 class="cta-heading">Ready to Transform Your <span class="gradient-text">Study Habits?</span></h2>
+                        <p class="cta-description">
+                            Join thousands of students who are already studying smarter, not harder.
+                            Start your journey for free today.
+                        </p>
+                    </div>
+                    <div class="cta-actions">
+                        <a href="#features" class="btn btn-primary btn-lg">
+                            Get Started Free
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                                <polyline points="12 5 19 12 12 19" />
+                            </svg>
+                        </a>
+                        <p class="cta-note">✦ Free forever for students · No credit card required</p>
+                    </div>
                 </div>
             </div>
         </section>
