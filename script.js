@@ -1,10 +1,10 @@
 /* ==========================================================================
-   Interactive Web Elements — script.js
-   Organized, reusable JavaScript for DOM manipulation & interactivity.
-   No external libraries — pure vanilla JS.
+   StudyHub — Interactive JavaScript
+   script.js — Modular, vanilla JS for all interactive features.
+   No frameworks. Uses querySelector, getElementById, addEventListener,
+   classList, style, textContent, and reusable functions.
    ========================================================================== */
 
-// Wait for the DOM to be fully loaded before initializing
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
@@ -12,52 +12,38 @@ document.addEventListener('DOMContentLoaded', function () {
        UTILITY FUNCTIONS
        ======================================================================= */
 
-    /**
-     * Shorthand for querySelector
-     * @param {string} selector - CSS selector
-     * @param {Element} parent - Optional parent element
-     * @returns {Element}
-     */
+    /** Shorthand for querySelector */
     function qs(selector, parent) {
         return (parent || document).querySelector(selector);
     }
 
-    /**
-     * Shorthand for querySelectorAll
-     * @param {string} selector - CSS selector
-     * @param {Element} parent - Optional parent element
-     * @returns {NodeList}
-     */
+    /** Shorthand for querySelectorAll */
     function qsa(selector, parent) {
         return (parent || document).querySelectorAll(selector);
     }
 
-    /**
-     * Get element by ID
-     * @param {string} id - Element ID
-     * @returns {Element}
-     */
+    /** Get element by ID */
     function byId(id) {
         return document.getElementById(id);
     }
 
-    /**
-     * Add event listener with shorthand
-     * @param {Element} el - Target element
-     * @param {string} event - Event type
-     * @param {Function} handler - Event handler
-     */
+    /** Add event listener with null check */
     function on(el, event, handler) {
         if (el) el.addEventListener(event, handler);
     }
 
+    /** Format number with commas: 50000 → "50,000" */
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
     /* =======================================================================
        1. DARK MODE TOGGLE
-       Smooth transition with localStorage persistence
+       Persists preference in localStorage. Respects system preference.
        ======================================================================= */
     function initDarkMode() {
         var toggle = byId('dark-mode-toggle');
-        var STORAGE_KEY = 'interactive-web-dark-mode';
+        var STORAGE_KEY = 'studyhub-dark-mode';
 
         // Restore saved preference on page load
         var savedTheme = localStorage.getItem(STORAGE_KEY);
@@ -79,162 +65,267 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* =======================================================================
-       2. INTERACTIVE COUNTER
-       Increase, decrease, reset with animated number pop
+       2. FEATURE SEARCH BAR
+       Filters feature cards by title and description text.
        ======================================================================= */
-    function initCounter() {
-        var counterValue = byId('counter-value');
-        var btnIncrease = byId('counter-increase');
-        var btnDecrease = byId('counter-decrease');
-        var btnReset = byId('counter-reset');
-        var count = 0;
+    function initFeatureSearch() {
+        var searchInput = byId('feature-search');
+        var searchCount = byId('feature-search-count');
+        var featureCards = qsa('.feature-card');
+
+        if (!searchInput || featureCards.length === 0) return;
+
+        on(searchInput, 'input', function () {
+            var query = searchInput.value.toLowerCase().trim();
+            var visibleCount = 0;
+
+            featureCards.forEach(function (card) {
+                var title = qs('.feature-title', card);
+                var desc = qs('.feature-description', card);
+                var titleText = title ? title.textContent.toLowerCase() : '';
+                var descText = desc ? desc.textContent.toLowerCase() : '';
+
+                if (query === '' || titleText.indexOf(query) !== -1 || descText.indexOf(query) !== -1) {
+                    card.style.display = '';
+                    card.style.opacity = '1';
+                    card.style.transform = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update count display
+            if (query === '') {
+                searchCount.textContent = '';
+            } else {
+                searchCount.textContent = visibleCount + ' of ' + featureCards.length + ' shown';
+            }
+        });
+    }
+
+    /* =======================================================================
+       3. FAVORITE NOTES COUNTER
+       Heart buttons on feature cards, with a floating counter.
+       ======================================================================= */
+    function initFavorites() {
+        var favoriteBtns = qsa('.favorite-btn');
+        var favCountDisplay = byId('favorites-count');
+        var favCounter = byId('favorites-counter');
+        var favCount = 0;
+
+        if (favoriteBtns.length === 0) return;
+
+        favoriteBtns.forEach(function (btn) {
+            on(btn, 'click', function (e) {
+                e.preventDefault();
+                var isFavorited = btn.classList.contains('favorited');
+
+                if (isFavorited) {
+                    btn.classList.remove('favorited');
+                    favCount = Math.max(0, favCount - 1);
+                } else {
+                    btn.classList.add('favorited');
+                    favCount++;
+
+                    // Pop animation
+                    btn.classList.remove('animate-pop');
+                    void btn.offsetWidth;
+                    btn.classList.add('animate-pop');
+                }
+
+                favCountDisplay.textContent = favCount;
+
+                // Show/hide floating counter
+                if (favCount > 0) {
+                    favCounter.classList.add('visible');
+                } else {
+                    favCounter.classList.remove('visible');
+                }
+            });
+        });
+    }
+
+    /* =======================================================================
+       4. ANIMATED STATISTICS COUNTER
+       Counts up from 0 when the stats section scrolls into view.
+       ======================================================================= */
+    function initStatCounters() {
+        var statNumbers = qsa('.stat-number[data-target]');
+
+        if (statNumbers.length === 0) return;
 
         /**
-         * Update the counter display with animation
-         * @param {number} newValue - The new counter value
+         * Animate a counter from 0 to target value
+         * @param {Element} el - The stat number element
          */
-        function updateCounter(newValue) {
-            count = newValue;
-            counterValue.textContent = count;
+        function animateCounter(el) {
+            var target = parseInt(el.getAttribute('data-target'), 10);
+            var suffix = el.getAttribute('data-suffix') || '';
+            var duration = 2000; // ms
+            var startTime = null;
 
-            // Trigger pop animation
-            counterValue.classList.remove('animate-pop');
-            // Force reflow to restart animation
-            void counterValue.offsetWidth;
-            counterValue.classList.add('animate-pop');
-        }
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var progress = Math.min((timestamp - startTime) / duration, 1);
 
-        on(btnIncrease, 'click', function () {
-            updateCounter(count + 1);
-        });
+                // Ease out quad
+                var eased = 1 - (1 - progress) * (1 - progress);
+                var current = Math.floor(eased * target);
 
-        on(btnDecrease, 'click', function () {
-            updateCounter(count - 1);
-        });
+                el.textContent = formatNumber(current) + suffix;
 
-        on(btnReset, 'click', function () {
-            updateCounter(0);
-        });
-    }
-
-    /* =======================================================================
-       3. DYNAMIC TEXT CHANGER
-       Cycling through an array of headings and descriptions
-       ======================================================================= */
-    function initTextChanger() {
-        var heading = byId('dynamic-heading');
-        var description = byId('dynamic-description');
-        var btn = byId('change-text-btn');
-
-        // Array of content objects to cycle through
-        var textContent = [
-            {
-                heading: 'Design Meets Function',
-                description: 'Great software is born when beautiful design and powerful functionality converge to create something truly extraordinary.'
-            },
-            {
-                heading: 'Code is Poetry',
-                description: 'Every line of code tells a story. Clean, elegant code is not just functional — it is a craft that combines logic with creativity.'
-            },
-            {
-                heading: 'Build for Tomorrow',
-                description: 'The best developers don\'t just solve today\'s problems. They architect solutions that scale, adapt, and stand the test of time.'
-            },
-            {
-                heading: 'Pixel Perfect Matters',
-                description: 'Attention to detail separates good from great. Every pixel, every transition, every micro-interaction contributes to the user experience.'
-            },
-            {
-                heading: 'Innovation Never Stops',
-                description: 'Technology evolves at the speed of imagination. Stay curious, keep learning, and push the boundaries of what\'s possible on the web.'
-            },
-            {
-                heading: 'Welcome to the Future',
-                description: 'Click the button below to discover inspiring messages about technology, creativity, and innovation.'
-            }
-        ];
-
-        var currentIndex = 0;
-
-        on(btn, 'click', function () {
-            // Move to next text (cycling back to start)
-            currentIndex = (currentIndex + 1) % textContent.length;
-
-            // Fade out current text
-            heading.style.opacity = '0';
-            heading.style.transform = 'translateY(-8px)';
-            description.style.opacity = '0';
-            description.style.transform = 'translateY(-8px)';
-
-            // After fade out, update content and fade in
-            setTimeout(function () {
-                heading.textContent = textContent[currentIndex].heading;
-                description.textContent = textContent[currentIndex].description;
-
-                heading.style.opacity = '1';
-                heading.style.transform = 'translateY(0)';
-                description.style.opacity = '1';
-                description.style.transform = 'translateY(0)';
-            }, 300);
-        });
-
-        // Add transition styles
-        heading.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        description.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    }
-
-    /* =======================================================================
-       4. SHOW/HIDE INFORMATION CARD
-       Smooth slide animation using CSS grid trick
-       ======================================================================= */
-    function initInfoCard() {
-        var btn = byId('toggle-info-btn');
-        var wrapper = byId('info-card-wrapper');
-        var isOpen = false;
-
-        on(btn, 'click', function () {
-            isOpen = !isOpen;
-            wrapper.classList.toggle('open', isOpen);
-
-            // Update button text
-            var btnText = btn.querySelector('span') || btn;
-            if (btn.childNodes.length > 1) {
-                // Get the text node (after the SVG)
-                var textNodes = Array.from(btn.childNodes).filter(function (node) {
-                    return node.nodeType === Node.TEXT_NODE;
-                });
-                if (textNodes.length > 0) {
-                    textNodes[textNodes.length - 1].textContent = isOpen ? ' Hide Info Card' : ' Toggle Info Card';
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    el.textContent = formatNumber(target) + suffix;
                 }
             }
+
+            requestAnimationFrame(step);
+        }
+
+        // Use IntersectionObserver to trigger animation
+        if ('IntersectionObserver' in window) {
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        animateCounter(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.3 });
+
+            statNumbers.forEach(function (el) {
+                observer.observe(el);
+            });
+        } else {
+            // Fallback: animate all immediately
+            statNumbers.forEach(animateCounter);
+        }
+    }
+
+    /* =======================================================================
+       5. EXPAND/COLLAPSE FAQ (Accordion)
+       Click question to toggle answer visibility. Smooth height animation.
+       ======================================================================= */
+    function initFAQ() {
+        var faqGrid = byId('faq-grid');
+        var faqCards = qsa('.faq-card');
+
+        if (!faqGrid || faqCards.length === 0) return;
+
+        // Set initial state — all collapsed
+        faqCards.forEach(function (card) {
+            card.classList.add('faq-collapsed');
+            var question = qs('.faq-question', card);
+            if (question) {
+                question.style.cursor = 'pointer';
+                question.setAttribute('role', 'button');
+                question.setAttribute('aria-expanded', 'false');
+
+                // Add toggle chevron
+                var chevron = document.createElement('span');
+                chevron.className = 'faq-chevron';
+                chevron.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
+                question.appendChild(chevron);
+            }
+        });
+
+        // Event delegation on faq grid
+        on(faqGrid, 'click', function (e) {
+            var question = e.target.closest('.faq-question');
+            if (!question) return;
+
+            var card = question.closest('.faq-card');
+            var isOpen = !card.classList.contains('faq-collapsed');
+
+            // Close all
+            faqCards.forEach(function (otherCard) {
+                otherCard.classList.add('faq-collapsed');
+                var q = qs('.faq-question', otherCard);
+                if (q) q.setAttribute('aria-expanded', 'false');
+            });
+
+            // Toggle clicked
+            if (!isOpen) {
+                card.classList.remove('faq-collapsed');
+                question.setAttribute('aria-expanded', 'true');
+            }
         });
     }
 
     /* =======================================================================
-       5. LIVE CHARACTER COUNTER
-       Real-time count with progress bar and color feedback
+       6. SCROLL TO TOP BUTTON
+       Appears after scrolling 400px, smooth scroll back to top.
+       ======================================================================= */
+    function initScrollToTop() {
+        var btn = byId('scroll-top-btn');
+        var scrollThreshold = 400;
+
+        if (!btn) return;
+
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > scrollThreshold) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        }, { passive: true });
+
+        on(btn, 'click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    /* =======================================================================
+       7. DISMISSIBLE ANNOUNCEMENT BANNER
+       Click X to close. Remembers dismissal with sessionStorage.
+       ======================================================================= */
+    function initAnnouncementBanner() {
+        var banner = byId('announcement-banner');
+        var closeBtn = byId('announcement-close');
+        var STORAGE_KEY = 'studyhub-banner-dismissed';
+
+        if (!banner || !closeBtn) return;
+
+        // Check if already dismissed this session
+        if (sessionStorage.getItem(STORAGE_KEY) === 'true') {
+            banner.style.display = 'none';
+            return;
+        }
+
+        on(closeBtn, 'click', function () {
+            banner.classList.add('dismissed');
+            sessionStorage.setItem(STORAGE_KEY, 'true');
+
+            // Remove from DOM after transition
+            setTimeout(function () {
+                banner.style.display = 'none';
+            }, 400);
+        });
+    }
+
+    /* =======================================================================
+       8. LIVE CHARACTER COUNTER
+       Real-time count with progress bar and color feedback.
        ======================================================================= */
     function initCharCounter() {
-        var textarea = byId('char-textarea');
+        var textarea = byId('contact-message');
         var charCount = byId('char-count');
         var charMax = byId('char-max');
         var progressFill = byId('char-progress-fill');
-        var maxLength = parseInt(textarea.getAttribute('maxlength'), 10) || 250;
 
-        // Set max display
+        if (!textarea || !charCount || !progressFill) return;
+
+        var maxLength = parseInt(textarea.getAttribute('maxlength'), 10) || 500;
         charMax.textContent = maxLength;
 
-        /**
-         * Update character count display and progress bar
-         */
         function updateCharCount() {
             var currentLength = textarea.value.length;
             var percentage = (currentLength / maxLength) * 100;
 
-            // Update count text
             charCount.textContent = currentLength;
-
-            // Update progress bar width
             progressFill.style.width = percentage + '%';
 
             // Change color based on usage
@@ -247,420 +338,340 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         on(textarea, 'input', updateCharCount);
-        on(textarea, 'keyup', updateCharCount);
-
-        // Initialize
         updateCharCount();
     }
 
     /* =======================================================================
-       6. RANDOM QUOTE GENERATOR
-       Array of quotes with fade animation
+       9. STUDY TIMER (Pomodoro)
+       Start, Pause, Reset. 25-minute focus sessions.
        ======================================================================= */
-    function initQuoteGenerator() {
-        var quoteText = byId('quote-text');
-        var quoteAuthor = byId('quote-author');
-        var btn = byId('new-quote-btn');
+    function initStudyTimer() {
+        var display = byId('timer-display');
+        var label = byId('timer-label');
+        var startBtn = byId('timer-start');
+        var pauseBtn = byId('timer-pause');
+        var resetBtn = byId('timer-reset');
+        var sessionsDisplay = byId('timer-sessions');
 
-        // Array of inspirational quotes
-        var quotes = [
-            { text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' },
-            { text: 'Innovation distinguishes between a leader and a follower.', author: 'Steve Jobs' },
-            { text: 'The best way to predict the future is to invent it.', author: 'Alan Kay' },
-            { text: 'Simplicity is the ultimate sophistication.', author: 'Leonardo da Vinci' },
-            { text: 'Talk is cheap. Show me the code.', author: 'Linus Torvalds' },
-            { text: 'First, solve the problem. Then, write the code.', author: 'John Johnson' },
-            { text: 'Code is like humor. When you have to explain it, it\'s bad.', author: 'Cory House' },
-            { text: 'Make it work, make it right, make it fast.', author: 'Kent Beck' },
-            { text: 'Any fool can write code that a computer can understand. Good programmers write code that humans can understand.', author: 'Martin Fowler' },
-            { text: 'The web does not just connect machines, it connects people.', author: 'Tim Berners-Lee' },
-            { text: 'Programs must be written for people to read, and only incidentally for machines to execute.', author: 'Harold Abelson' },
-            { text: 'Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.', author: 'Antoine de Saint-Exupéry' }
+        if (!display || !startBtn) return;
+
+        var FOCUS_TIME = 25 * 60; // 25 minutes in seconds
+        var timeRemaining = FOCUS_TIME;
+        var timerInterval = null;
+        var isRunning = false;
+        var sessions = 0;
+
+        /** Format seconds as MM:SS */
+        function formatTime(seconds) {
+            var mins = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+            return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+
+        /** Update the timer display */
+        function updateDisplay() {
+            display.textContent = formatTime(timeRemaining);
+        }
+
+        /** Start the timer */
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+
+            timerInterval = setInterval(function () {
+                timeRemaining--;
+                updateDisplay();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    sessions++;
+                    sessionsDisplay.textContent = sessions;
+
+                    // Flash completion
+                    display.classList.add('timer-complete');
+                    label.textContent = 'Session Complete! 🎉';
+
+                    startBtn.disabled = false;
+                    pauseBtn.disabled = true;
+
+                    // Reset for next session
+                    timeRemaining = FOCUS_TIME;
+
+                    setTimeout(function () {
+                        display.classList.remove('timer-complete');
+                        label.textContent = 'Focus Time';
+                        updateDisplay();
+                    }, 3000);
+                }
+            }, 1000);
+        }
+
+        /** Pause the timer */
+        function pauseTimer() {
+            if (!isRunning) return;
+            clearInterval(timerInterval);
+            isRunning = false;
+
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            label.textContent = 'Paused';
+        }
+
+        /** Reset the timer */
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeRemaining = FOCUS_TIME;
+
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            label.textContent = 'Focus Time';
+            display.classList.remove('timer-complete');
+            updateDisplay();
+        }
+
+        on(startBtn, 'click', startTimer);
+        on(pauseBtn, 'click', pauseTimer);
+        on(resetBtn, 'click', resetTimer);
+
+        updateDisplay();
+    }
+
+    /* =======================================================================
+       10. RANDOM STUDY TIP GENERATOR
+       Array of tips with fade animation.
+       ======================================================================= */
+    function initStudyTips() {
+        var tipText = byId('study-tip-text');
+        var tipBtn = byId('study-tip-btn');
+
+        if (!tipText || !tipBtn) return;
+
+        var tips = [
+            '📚 Use the Pomodoro Technique: Study for 25 minutes, then take a 5-minute break. Repeat!',
+            '🧠 Active recall is more effective than re-reading. Test yourself after each study session.',
+            '📝 Summarize what you learned in your own words — it deepens understanding.',
+            '🎵 Listen to lo-fi or ambient music to improve focus during study sessions.',
+            '💤 Sleep is crucial for memory consolidation. Aim for 7–9 hours per night.',
+            '🏃 Exercise before studying — even a 15-minute walk boosts focus and retention.',
+            '📅 Plan your study sessions the night before. A clear plan reduces procrastination.',
+            '🔄 Spaced repetition beats cramming — review material at increasing intervals.',
+            '🎯 Set specific goals for each session: "Read Ch. 5" is better than "Study Biology."',
+            '🚫 Put your phone in another room while studying to eliminate distractions.',
+            '✍️ Handwriting notes improves retention compared to typing them.',
+            '🗂️ Organize notes by topic using color-coding or tags for easy retrieval.',
+            '🤝 Teaching someone else is one of the best ways to solidify your understanding.',
+            '🧘 Practice mindfulness or deep breathing for 2 minutes before studying to improve focus.',
+            '📖 Read the chapter summary first, then dive into details — it creates a mental framework.'
         ];
 
         var lastIndex = -1;
 
-        /**
-         * Get a random quote that's different from the last one
-         * @returns {Object} A quote object with text and author
-         */
-        function getRandomQuote() {
-            var index;
-            do {
-                index = Math.floor(Math.random() * quotes.length);
-            } while (index === lastIndex && quotes.length > 1);
-            lastIndex = index;
-            return quotes[index];
-        }
-
-        on(btn, 'click', function () {
+        on(tipBtn, 'click', function () {
             // Fade out
-            quoteText.style.opacity = '0';
-            quoteAuthor.style.opacity = '0';
+            tipText.style.opacity = '0';
+            tipText.style.transform = 'translateY(-6px)';
 
             setTimeout(function () {
-                var quote = getRandomQuote();
-                quoteText.textContent = quote.text;
-                quoteAuthor.textContent = '— ' + quote.author;
+                // Pick random tip (different from last)
+                var index;
+                do {
+                    index = Math.floor(Math.random() * tips.length);
+                } while (index === lastIndex && tips.length > 1);
+                lastIndex = index;
 
-                // Fade in
-                quoteText.style.opacity = '1';
-                quoteAuthor.style.opacity = '1';
-            }, 300);
+                tipText.textContent = tips[index];
+                tipText.style.opacity = '1';
+                tipText.style.transform = 'translateY(0)';
+            }, 250);
         });
 
         // Add transition
-        quoteText.style.transition = 'opacity 0.3s ease';
-        quoteAuthor.style.transition = 'opacity 0.3s ease';
+        tipText.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
     }
 
     /* =======================================================================
-       7. IMAGE SWITCHER
-       Navigate images with fade animation and dot indicators
-       ======================================================================= */
-    function initImageSwitcher() {
-        var img = byId('switcher-img');
-        var btnPrev = byId('img-prev');
-        var btnNext = byId('img-next');
-        var dotsContainer = byId('image-dots');
-        var dots = qsa('.dot', dotsContainer);
-
-        // Array of image sources (using existing project images)
-        var images = [
-            { src: 'images/project-portfolio.png', alt: 'Portfolio website project' },
-            { src: 'images/project-landing.png', alt: 'Landing page project' },
-            { src: 'images/project-webapp.png', alt: 'Web application UI project' }
-        ];
-
-        var currentImage = 0;
-
-        /**
-         * Switch to a specific image with fade animation
-         * @param {number} index - Index of the image to show
-         */
-        function switchImage(index) {
-            if (index === currentImage) return;
-
-            // Fade out
-            img.classList.add('fade-out');
-
-            setTimeout(function () {
-                currentImage = index;
-                img.src = images[currentImage].src;
-                img.alt = images[currentImage].alt;
-                img.classList.remove('fade-out');
-
-                // Update dots
-                dots.forEach(function (dot, i) {
-                    dot.classList.toggle('active', i === currentImage);
-                });
-            }, 400);
-        }
-
-        on(btnNext, 'click', function () {
-            var nextIndex = (currentImage + 1) % images.length;
-            switchImage(nextIndex);
-        });
-
-        on(btnPrev, 'click', function () {
-            var prevIndex = (currentImage - 1 + images.length) % images.length;
-            switchImage(prevIndex);
-        });
-
-        // Dot click handlers (event delegation)
-        on(dotsContainer, 'click', function (e) {
-            var dot = e.target.closest('.dot');
-            if (dot) {
-                var index = parseInt(dot.getAttribute('data-index'), 10);
-                switchImage(index);
-            }
-        });
-    }
-
-    /* =======================================================================
-       8. COLOR THEME SWITCHER
-       Multiple accent color palettes
-       ======================================================================= */
-    function initThemeSwitcher() {
-        var swatchesContainer = byId('theme-swatches');
-        var swatches = qsa('.swatch', swatchesContainer);
-        var STORAGE_KEY = 'interactive-web-accent-theme';
-
-        /**
-         * Apply a color theme to the body
-         * @param {string} theme - Theme name (e.g., 'violet', 'cyan')
-         */
-        function applyTheme(theme) {
-            // Set data attribute for CSS matching
-            document.body.setAttribute('data-theme', theme);
-
-            // Update active swatch
-            swatches.forEach(function (swatch) {
-                swatch.classList.toggle('active', swatch.getAttribute('data-theme') === theme);
-            });
-
-            // Save preference
-            localStorage.setItem(STORAGE_KEY, theme);
-        }
-
-        // Restore saved theme
-        var savedTheme = localStorage.getItem(STORAGE_KEY);
-        if (savedTheme) {
-            applyTheme(savedTheme);
-        }
-
-        // Event delegation for swatch clicks
-        on(swatchesContainer, 'click', function (e) {
-            var swatch = e.target.closest('.swatch');
-            if (swatch) {
-                var theme = swatch.getAttribute('data-theme');
-                applyTheme(theme);
-            }
-        });
-    }
-
-    /* =======================================================================
-       9. INTERACTIVE FAQ (ACCORDION)
-       Expand/collapse with smooth animation
-       ======================================================================= */
-    function initFAQ() {
-        var faqList = byId('faq-list');
-        var faqItems = qsa('.faq-item', faqList);
-
-        /**
-         * Toggle a specific FAQ item open/closed
-         * @param {Element} item - The FAQ item element
-         */
-        function toggleFAQ(item) {
-            var isOpen = item.classList.contains('open');
-            var button = qs('.faq-question', item);
-
-            // Close all other items (accordion behavior)
-            faqItems.forEach(function (otherItem) {
-                if (otherItem !== item) {
-                    otherItem.classList.remove('open');
-                    var otherBtn = qs('.faq-question', otherItem);
-                    if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
-                }
-            });
-
-            // Toggle current item
-            item.classList.toggle('open', !isOpen);
-            if (button) button.setAttribute('aria-expanded', String(!isOpen));
-        }
-
-        // Event delegation on the FAQ list
-        on(faqList, 'click', function (e) {
-            var question = e.target.closest('.faq-question');
-            if (question) {
-                var item = question.closest('.faq-item');
-                toggleFAQ(item);
-            }
-        });
-    }
-
-    /* =======================================================================
-       10. CONTACT FORM VALIDATION
-       Client-side validation with success/error toasts
-       ======================================================================= */
-    function initContactForm() {
-        var form = byId('contact-form');
-        var nameInput = byId('contact-name');
-        var emailInput = byId('contact-email');
-        var messageInput = byId('contact-message');
-        var nameError = byId('name-error');
-        var emailError = byId('email-error');
-        var messageError = byId('message-error');
-        var toast = byId('form-toast');
-        var toastMessage = byId('toast-message');
-
-        /**
-         * Validate a single field
-         * @param {Element} input - The input element
-         * @param {Element} errorEl - The error display element
-         * @param {string} fieldName - Human-readable field name
-         * @returns {boolean} Whether the field is valid
-         */
-        function validateField(input, errorEl, fieldName) {
-            var value = input.value.trim();
-            var parentGroup = input.closest('.form-group') || input.parentElement.closest('.form-group');
-
-            // Check if empty
-            if (!value) {
-                if (parentGroup) parentGroup.classList.add('error');
-                errorEl.textContent = fieldName + ' is required.';
-                return false;
-            }
-
-            // Email specific validation
-            if (input.type === 'email') {
-                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(value)) {
-                    if (parentGroup) parentGroup.classList.add('error');
-                    errorEl.textContent = 'Please enter a valid email address.';
-                    return false;
-                }
-            }
-
-            // Clear errors
-            if (parentGroup) parentGroup.classList.remove('error');
-            errorEl.textContent = '';
-            return true;
-        }
-
-        /**
-         * Show a toast notification
-         * @param {string} message - Toast message
-         * @param {boolean} isError - Whether it's an error toast
-         */
-        function showToast(message, isError) {
-            toastMessage.textContent = message;
-            toast.classList.toggle('error', !!isError);
-            toast.classList.add('show');
-
-            // Auto-hide after 4 seconds
-            setTimeout(function () {
-                toast.classList.remove('show');
-            }, 4000);
-        }
-
-        // Real-time validation on blur
-        on(nameInput, 'blur', function () {
-            validateField(nameInput, nameError, 'Name');
-        });
-
-        on(emailInput, 'blur', function () {
-            validateField(emailInput, emailError, 'Email');
-        });
-
-        on(messageInput, 'blur', function () {
-            validateField(messageInput, messageError, 'Message');
-        });
-
-        // Clear error on input
-        on(nameInput, 'input', function () {
-            var parentGroup = nameInput.closest('.form-group');
-            if (parentGroup) parentGroup.classList.remove('error');
-            nameError.textContent = '';
-        });
-
-        on(emailInput, 'input', function () {
-            var parentGroup = emailInput.closest('.form-group');
-            if (parentGroup) parentGroup.classList.remove('error');
-            emailError.textContent = '';
-        });
-
-        on(messageInput, 'input', function () {
-            var parentGroup = messageInput.closest('.form-group');
-            if (parentGroup) parentGroup.classList.remove('error');
-            messageError.textContent = '';
-        });
-
-        // Form submission
-        on(form, 'submit', function (e) {
-            e.preventDefault();
-
-            var isNameValid = validateField(nameInput, nameError, 'Name');
-            var isEmailValid = validateField(emailInput, emailError, 'Email');
-            var isMessageValid = validateField(messageInput, messageError, 'Message');
-
-            if (isNameValid && isEmailValid && isMessageValid) {
-                // Simulate successful submission
-                showToast('Message sent successfully! ✨', false);
-
-                // Reset form
-                form.reset();
-
-                // Clear any remaining error states
-                qsa('.form-group', form).forEach(function (group) {
-                    group.classList.remove('error');
-                });
-            } else {
-                showToast('Please fix the errors above.', true);
-            }
-        });
-    }
-
-    /* =======================================================================
-       SCROLL TO TOP BUTTON
-       Shows after scrolling down, smooth scroll back to top
-       ======================================================================= */
-    function initScrollToTop() {
-        var btn = byId('scroll-top-btn');
-        var scrollThreshold = 400;
-
-        // Show/hide based on scroll position
-        window.addEventListener('scroll', function () {
-            if (window.scrollY > scrollThreshold) {
-                btn.classList.add('visible');
-            } else {
-                btn.classList.remove('visible');
-            }
-        });
-
-        // Scroll to top on click
-        on(btn, 'click', function () {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
-
-    /* =======================================================================
-       SCROLL REVEAL ANIMATION
-       Animate sections as they enter the viewport
+       11. SMOOTH FADE-IN ANIMATIONS (Scroll Reveal)
+       IntersectionObserver for fade-in as sections enter viewport.
        ======================================================================= */
     function initScrollReveal() {
-        var sections = qsa('.section');
+        // Target all major sections + individual cards
+        var revealElements = qsa(
+            '.hero, .trusted-by, .features, .how-it-works, .dashboard-section, ' +
+            '.statistics, .testimonials, .faq-section, .contact-section, ' +
+            '.study-timer-section, .study-tip-section, .cta-banner, ' +
+            '.feature-card, .stat-card, .testimonial-card, .faq-card, .step-card'
+        );
 
-        // Set initial state
-        sections.forEach(function (section) {
-            section.style.opacity = '0';
-            section.style.transform = 'translateY(40px)';
-            section.style.transition = 'opacity 0.7s ease-out, transform 0.7s ease-out';
+        if (revealElements.length === 0) return;
+
+        // Set initial hidden state
+        revealElements.forEach(function (el) {
+            el.classList.add('reveal-hidden');
         });
 
-        // Create intersection observer
         if ('IntersectionObserver' in window) {
             var observer = new IntersectionObserver(function (entries) {
                 entries.forEach(function (entry) {
                     if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
+                        entry.target.classList.add('reveal-visible');
+                        entry.target.classList.remove('reveal-hidden');
                         observer.unobserve(entry.target);
                     }
                 });
             }, {
-                threshold: 0.12,
+                threshold: 0.08,
                 rootMargin: '0px 0px -40px 0px'
             });
 
-            sections.forEach(function (section) {
-                observer.observe(section);
+            revealElements.forEach(function (el) {
+                observer.observe(el);
             });
         } else {
-            // Fallback for older browsers
-            sections.forEach(function (section) {
-                section.style.opacity = '1';
-                section.style.transform = 'translateY(0)';
+            // Fallback: show all immediately
+            revealElements.forEach(function (el) {
+                el.classList.remove('reveal-hidden');
+                el.classList.add('reveal-visible');
             });
         }
     }
 
     /* =======================================================================
-       INITIALIZE ALL COMPONENTS
+       12. MOBILE NAV CLOSE ON LINK CLICK
+       Closes the hamburger menu when a nav link is clicked.
+       ======================================================================= */
+    function initMobileNavClose() {
+        var navToggle = byId('nav-toggle');
+        var navLinks = qsa('.nav-link');
+
+        if (!navToggle) return;
+
+        navLinks.forEach(function (link) {
+            on(link, 'click', function () {
+                navToggle.checked = false;
+            });
+        });
+    }
+
+    /* =======================================================================
+       13. ACTIVE NAV LINK HIGHLIGHT ON SCROLL
+       Updates active nav link based on scroll position.
+       ======================================================================= */
+    function initActiveNavHighlight() {
+        var sections = qsa('section[id]');
+        var navLinks = qsa('.nav-link');
+
+        if (sections.length === 0 || navLinks.length === 0) return;
+
+        window.addEventListener('scroll', function () {
+            var scrollY = window.scrollY + 100;
+
+            sections.forEach(function (section) {
+                var sectionTop = section.offsetTop;
+                var sectionHeight = section.offsetHeight;
+                var sectionId = section.getAttribute('id');
+
+                if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+                    navLinks.forEach(function (link) {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + sectionId) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { passive: true });
+    }
+
+    /* =======================================================================
+       14. CONTACT FORM VALIDATION & SUBMIT
+       Client-side validation with visual feedback.
+       ======================================================================= */
+    function initContactForm() {
+        var form = byId('contact-form');
+
+        if (!form) return;
+
+        on(form, 'submit', function (e) {
+            e.preventDefault();
+
+            var name = byId('contact-name');
+            var email = byId('contact-email');
+            var subject = byId('contact-subject');
+            var message = byId('contact-message');
+            var isValid = true;
+
+            // Simple validation
+            [name, email, subject, message].forEach(function (input) {
+                if (!input.value.trim()) {
+                    input.classList.add('input-error');
+                    isValid = false;
+                } else {
+                    input.classList.remove('input-error');
+                }
+            });
+
+            // Email format check
+            if (email && email.value.trim()) {
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email.value.trim())) {
+                    email.classList.add('input-error');
+                    isValid = false;
+                }
+            }
+
+            if (isValid) {
+                // Simulate success
+                var submitBtn = byId('contact-submit');
+                submitBtn.textContent = '✓ Sent!';
+                submitBtn.style.pointerEvents = 'none';
+                form.reset();
+
+                // Reset char counter
+                var charCount = byId('char-count');
+                var progressFill = byId('char-progress-fill');
+                if (charCount) charCount.textContent = '0';
+                if (progressFill) {
+                    progressFill.style.width = '0%';
+                    progressFill.classList.remove('warning', 'danger');
+                }
+
+                setTimeout(function () {
+                    submitBtn.innerHTML = 'Send Message <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+                    submitBtn.style.pointerEvents = '';
+                }, 2500);
+            }
+        });
+
+        // Clear error on input
+        qsa('.form-input', form).forEach(function (input) {
+            on(input, 'input', function () {
+                input.classList.remove('input-error');
+            });
+        });
+    }
+
+    /* =======================================================================
+       INITIALIZE ALL MODULES
        ======================================================================= */
     initDarkMode();
-    initCounter();
-    initTextChanger();
-    initInfoCard();
-    initCharCounter();
-    initQuoteGenerator();
-    initImageSwitcher();
-    initThemeSwitcher();
+    initFeatureSearch();
+    initFavorites();
+    initStatCounters();
     initFAQ();
-    initContactForm();
     initScrollToTop();
+    initAnnouncementBanner();
+    initCharCounter();
+    initStudyTimer();
+    initStudyTips();
     initScrollReveal();
+    initMobileNavClose();
+    initActiveNavHighlight();
+    initContactForm();
 
-    // Log initialization confirmation
-    console.log('%c✨ Interactive Web Elements initialized!', 'color: #7c3aed; font-size: 14px; font-weight: bold;');
+    console.log('%c✨ StudyHub Interactive Features initialized!', 'color: #7c3aed; font-size: 14px; font-weight: bold;');
 });
