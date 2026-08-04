@@ -32,9 +32,17 @@ A modern, premium landing page for **StudyHub**, a student productivity platform
 - **Scroll Reveal** — Elements fade in on scroll with staggered delays per card
 - **Scroll-to-Top** — Floating button appears after scrolling 300px
 - **Dismissible Banner** — Announcement bar with close button
-- **Contact Form Validation** — Client-side validation with error states and character counter with progress bar
 - **Active Nav Highlighting** — Navigation links update based on scroll position
 - **Mobile Nav Auto-Close** — Drawer closes on link click
+
+### Login Page
+- **Centered login form** — Glassmorphism card with Email and Password fields
+- **Client-side validation** — Regex email check, empty field detection, and minimum password length
+- **Live feedback** — Error/success states update on `blur` and `input` events
+- **Show Password toggle** — Custom checkbox toggles password visibility
+- **`preventDefault()`** — Prevents native form submission; validates and redirects via JavaScript
+- **Auto-redirect** — Navigates to the home page 2 seconds after successful login
+- **ARIA accessibility** — `aria-describedby`, `aria-required`, and `role="alert"` on error messages
 
 ---
 
@@ -52,11 +60,11 @@ A modern, premium landing page for **StudyHub**, a student productivity platform
 | **Statistics** | 4 animated stat counters (students, notes, hours saved, satisfaction) |
 | **Testimonials** | 3 student review cards with star ratings and author avatars |
 | **FAQ** | 6 expandable FAQ cards in accordion format |
-| **Contact** | Contact info panel + styled form with validation and character counter |
 | **Study Timer** | Pomodoro timer widget (25 min) with Start / Pause / Reset |
 | **Study Tips** | Random tip generator card with "Get New Tip" button |
-| **CTA Banner** | Final call-to-action with gradient background |
+| **CTA Banner** | Final call-to-action with gradient background, links to Login page |
 | **Footer** | 4-column footer with brand info, product links, resources, and legal |
+| **Login Page** | Separate page with email/password form, validation, and redirect to home |
 
 ---
 
@@ -66,14 +74,15 @@ A modern, premium landing page for **StudyHub**, a student productivity platform
 |------------|-------|
 | HTML5 | Semantic structure, SVG icons, accessible markup |
 | CSS3 | Styling, layout, animations, glassmorphism, dark mode |
-| JavaScript (ES6) | 14 modular interactive features (no frameworks) |
-| CSS Grid | Hero, features, dashboard, stats, testimonials, FAQ, contact, footer layouts |
-| CSS Flexbox | Navigation, buttons, step cards, activity items |
+| JavaScript (ES6) | 12 modular interactive features + login validation (no frameworks) |
+| CSS Grid | Hero, features, dashboard, stats, testimonials, FAQ, footer layouts |
+| CSS Flexbox | Navigation, buttons, step cards, activity items, login page centering |
 | CSS Custom Properties | 50+ design tokens for colors, spacing, shadows, radii |
 | CSS Media Queries | Mobile-first responsive design (4 breakpoints) |
 | Google Fonts | Inter (body) & JetBrains Mono (code/badges) |
 | IntersectionObserver | Scroll reveal animations & stat counter triggers |
 | localStorage | Dark mode preference persistence |
+| Regex | Email format validation on login page |
 
 ---
 
@@ -81,13 +90,17 @@ A modern, premium landing page for **StudyHub**, a student productivity platform
 
 ```
 FrontendDev-P1/
-├── index.html          # Main HTML file — all sections & structure
-├── style.css           # Complete stylesheet (~4500 lines) with responsive breakpoints
-├── script.js           # Vanilla JS (~680 lines) — 14 modular feature initializers
+├── index.html              # Main landing page — all sections & structure
+├── style.css               # Main stylesheet (~5000 lines) with responsive breakpoints
+├── script.js               # Main JS (~560 lines) — 12 modular feature initializers
 ├── images/
 │   ├── features-illustration.png   # Features section illustration
 │   └── hero-illustration.png       # Hero section illustration
-└── README.md           # This file
+├── login/
+│   ├── index.html          # Login page — email/password form
+│   ├── style.css           # Login page styles — glassmorphism, animations
+│   └── script.js           # Login validation — regex, preventDefault, redirect
+└── README.md               # This file
 ```
 
 ---
@@ -108,6 +121,32 @@ FrontendDev-P1/
 3. **Or use a live server**
    - **VS Code**: Install the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension and click **"Go Live"**
    - **Python**: Run `python -m http.server 8000` and visit `http://localhost:8000`
+
+---
+
+## 🔐 Login Page
+
+A standalone login page located in the `login/` directory with:
+
+- **Email field** — Validates format using regex: `/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/`
+- **Password field** — Validates minimum 6 characters
+- **Show Password** — Custom checkbox toggles input type between `password` and `text`
+- **Error messages** — Red text below each field with `role="alert"` for screen readers
+- **Success state** — Green banner with "Login Successful! Redirecting…" message
+- **Auto-redirect** — Navigates to `index.html` after 2 seconds on successful login
+- **Back to Home** — Logo and footer link navigate back to the main page
+
+### Navigation Flow
+```
+Home Page (index.html)
+  ├── Nav "Login" button ──────→ login/index.html
+  └── CTA "Get Started Free" ──→ login/index.html
+
+Login Page (login/index.html)
+  ├── "StudyHub" logo ─────────→ index.html
+  ├── "← Back to Home" link ───→ index.html
+  └── Successful login ────────→ index.html (auto-redirect)
+```
 
 ---
 
@@ -185,23 +224,37 @@ A built-in **Pomodoro timer** with:
 
 ## 🧠 JavaScript Architecture
 
-All JS is in a single `script.js` file, wrapped in `DOMContentLoaded`. It uses **14 modular init functions**:
+### Main Page (`script.js`)
+
+All JS is wrapped in `DOMContentLoaded` and uses **12 modular init functions**:
 
 ```
-initDarkMode()          — Theme toggle + localStorage + system preference
-initFeatureSearch()     — Live search filtering for feature cards
-initFavorites()         — Heart toggle + floating counter
-initStatCounters()      — IntersectionObserver-triggered count-up animation
-initFAQ()               — Accordion expand/collapse
-initScrollToTop()       — Floating back-to-top button
-initAnnouncementBanner()— Dismissible top banner
-initCharCounter()       — Textarea character counter with progress bar
-initStudyTimer()        — Pomodoro timer (Start/Pause/Reset)
-initStudyTips()         — Random study tip generator
-initScrollReveal()      — Fade-in-on-scroll animations
-initMobileNavClose()    — Auto-close hamburger on link click
-initActiveNavHighlight()— Scroll-based active nav highlighting
-initContactForm()       — Client-side form validation
+initDarkMode()           — Theme toggle + localStorage + system preference
+initFeatureSearch()      — Live search filtering for feature cards
+initFavorites()          — Heart toggle + floating counter
+initStatCounters()       — IntersectionObserver-triggered count-up animation
+initFAQ()                — Accordion expand/collapse
+initScrollToTop()        — Floating back-to-top button
+initAnnouncementBanner() — Dismissible top banner
+initStudyTimer()         — Pomodoro timer (Start/Pause/Reset)
+initStudyTips()          — Random study tip generator
+initScrollReveal()       — Fade-in-on-scroll animations
+initMobileNavClose()     — Auto-close hamburger on link click
+initActiveNavHighlight() — Scroll-based active nav highlighting
+```
+
+### Login Page (`login/script.js`)
+
+Standalone IIFE with client-side form validation:
+
+```
+validateEmail()          — Regex-based email format check
+validatePassword()       — Minimum length validation
+showError()              — DOM manipulation for error states
+showValid()              — DOM manipulation for success states
+clearState()             — Reset to neutral state
+Show Password toggle     — Checkbox toggles input type
+Form submit handler      — preventDefault() + validate + redirect
 ```
 
 ---
