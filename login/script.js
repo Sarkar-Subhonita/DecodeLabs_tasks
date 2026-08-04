@@ -213,10 +213,10 @@
         console.log('%c✅ Login Successful!', 'color: #10b981; font-weight: bold;');
         console.log('   Email:', emailInput.value.trim());
 
-        // Re-enable button after 3 seconds (simulating redirect)
+        // Redirect to home page after a short delay
         setTimeout(function () {
-            loginBtn.disabled = false;
-        }, 3000);
+            window.location.href = '../index.html';
+        }, 2000);
     });
 
 })();
