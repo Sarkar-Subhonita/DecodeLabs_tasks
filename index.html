@@ -1152,35 +1152,132 @@
                     </div>
 
                     <!-- Contact Form -->
-                    <form class="contact-form" id="contact-form" action="#" method="POST">
+                    <form class="contact-form" id="contact-form" action="#" method="POST" novalidate>
+                        <!-- Row 1: Full Name + Email -->
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="contact-name" class="form-label">Full Name</label>
-                                <input type="text" id="contact-name" class="form-input" placeholder="Your name"
-                                    required>
+                                <label for="contact-name" class="form-label">Full Name <span class="form-required">*</span></label>
+                                <div class="form-input-wrap">
+                                    <input type="text" id="contact-name" class="form-input" placeholder="Your full name"
+                                        autocomplete="name">
+                                    <span class="form-check" aria-hidden="true">✓</span>
+                                </div>
+                                <span class="form-error" id="contact-name-error"></span>
                             </div>
                             <div class="form-group">
-                                <label for="contact-email" class="form-label">Email Address</label>
-                                <input type="email" id="contact-email" class="form-input" placeholder="you@example.com"
-                                    required>
+                                <label for="contact-email" class="form-label">Email Address <span class="form-required">*</span></label>
+                                <div class="form-input-wrap">
+                                    <input type="email" id="contact-email" class="form-input" placeholder="you@example.com"
+                                        autocomplete="email">
+                                    <span class="form-check" aria-hidden="true">✓</span>
+                                </div>
+                                <span class="form-error" id="contact-email-error"></span>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="contact-subject" class="form-label">Subject</label>
-                            <input type="text" id="contact-subject" class="form-input"
-                                placeholder="How can we help?" required>
+
+                        <!-- Row 2: Phone + Study Goal -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contact-phone" class="form-label">Phone Number <span class="form-required">*</span></label>
+                                <div class="form-input-wrap">
+                                    <input type="tel" id="contact-phone" class="form-input" placeholder="+91 98765 43210"
+                                        autocomplete="tel">
+                                    <span class="form-check" aria-hidden="true">✓</span>
+                                </div>
+                                <span class="form-error" id="contact-phone-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-goal" class="form-label">Study Goal <span class="form-required">*</span></label>
+                                <div class="form-input-wrap">
+                                    <select id="contact-goal" class="form-input form-select">
+                                        <option value="">Select your goal...</option>
+                                        <option value="exam-prep">Exam Preparation</option>
+                                        <option value="homework">Homework Help</option>
+                                        <option value="research">Research & Projects</option>
+                                        <option value="skill-building">Skill Building</option>
+                                        <option value="time-management">Time Management</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                    <span class="form-check" aria-hidden="true">✓</span>
+                                </div>
+                                <span class="form-error" id="contact-goal-error"></span>
+                            </div>
                         </div>
+
+                        <!-- Row 3: Password + Confirm Password -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contact-password" class="form-label">Password <span class="form-required">*</span></label>
+                                <div class="form-input-wrap">
+                                    <input type="password" id="contact-password" class="form-input" placeholder="Min 8 characters"
+                                        autocomplete="new-password">
+                                    <button type="button" class="password-toggle" id="password-toggle-1" aria-label="Show password">
+                                        <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        <svg class="eye-off-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                                            <line x1="1" y1="1" x2="23" y2="23"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="password-strength" id="password-strength">
+                                    <div class="strength-track">
+                                        <div class="strength-bar" id="strength-bar"></div>
+                                    </div>
+                                    <span class="strength-label" id="strength-label"></span>
+                                </div>
+                                <span class="form-error" id="contact-password-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-confirm-password" class="form-label">Confirm Password <span class="form-required">*</span></label>
+                                <div class="form-input-wrap">
+                                    <input type="password" id="contact-confirm-password" class="form-input" placeholder="Repeat password"
+                                        autocomplete="new-password">
+                                    <button type="button" class="password-toggle" id="password-toggle-2" aria-label="Show password">
+                                        <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        <svg class="eye-off-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                                            <line x1="1" y1="1" x2="23" y2="23"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <span class="form-error" id="contact-confirm-password-error"></span>
+                            </div>
+                        </div>
+
+                        <!-- Message -->
                         <div class="form-group">
-                            <label for="contact-message" class="form-label">Message</label>
-                            <textarea id="contact-message" class="form-input form-textarea"
-                                placeholder="Tell us more..." rows="5" required maxlength="500"></textarea>
+                            <label for="contact-message" class="form-label">Message <span class="form-required">*</span></label>
+                            <div class="form-input-wrap">
+                                <textarea id="contact-message" class="form-input form-textarea"
+                                    placeholder="Tell us more about your goals..." rows="5" maxlength="500"></textarea>
+                                <span class="form-check form-check-textarea" aria-hidden="true">✓</span>
+                            </div>
                             <div class="char-counter" id="char-counter">
                                 <span id="char-count">0</span> / <span id="char-max">500</span> characters
                                 <div class="char-progress-track">
                                     <div class="char-progress-fill" id="char-progress-fill"></div>
                                 </div>
                             </div>
+                            <span class="form-error" id="contact-message-error"></span>
                         </div>
+
+                        <!-- Terms Checkbox -->
+                        <div class="form-group form-checkbox-group">
+                            <label class="checkbox-label" for="contact-terms">
+                                <input type="checkbox" id="contact-terms" class="form-checkbox">
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-text">I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a> <span class="form-required">*</span></span>
+                            </label>
+                            <span class="form-error" id="contact-terms-error"></span>
+                        </div>
+
+                        <!-- Submit Button -->
                         <button type="submit" class="btn btn-primary btn-full" id="contact-submit">
                             Send Message
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -1342,6 +1439,24 @@
     <div class="favorites-counter" id="favorites-counter">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
         <span id="favorites-count">0</span>
+    </div>
+
+    <!-- ===== SUCCESS MODAL ===== -->
+    <div class="success-modal" id="success-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="success-modal-card">
+            <div class="modal-checkmark">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="9 12 12 15 16 10"/>
+                </svg>
+            </div>
+            <h3 class="modal-title" id="modal-title">Message Sent!</h3>
+            <p class="modal-text">Thank you for reaching out. Your message has been saved and we'll get back to you within 24 hours.</p>
+            <p class="modal-summary" id="modal-summary"></p>
+            <button type="button" class="btn btn-primary modal-close-btn" id="modal-close-btn">
+                Got it!
+            </button>
+        </div>
     </div>
 
     <!-- Main Script -->

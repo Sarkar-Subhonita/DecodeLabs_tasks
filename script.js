@@ -588,70 +588,457 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* =======================================================================
-       14. CONTACT FORM VALIDATION & SUBMIT
-       Client-side validation with visual feedback.
+       14. ADVANCED CONTACT FORM VALIDATION
+       Modular validators, live feedback, password strength, success modal,
+       localStorage, and form reset.
        ======================================================================= */
     function initContactForm() {
         var form = byId('contact-form');
-
         if (!form) return;
 
+        /* --- Element References --- */
+        var fields = {
+            name:     byId('contact-name'),
+            email:    byId('contact-email'),
+            phone:    byId('contact-phone'),
+            goal:     byId('contact-goal'),
+            password: byId('contact-password'),
+            confirm:  byId('contact-confirm-password'),
+            message:  byId('contact-message'),
+            terms:    byId('contact-terms')
+        };
+
+        var submitBtn = byId('contact-submit');
+        var strengthBar = byId('strength-bar');
+        var strengthLabel = byId('strength-label');
+        var strengthWrap = byId('password-strength');
+        var modal = byId('success-modal');
+        var modalCloseBtn = byId('modal-close-btn');
+        var modalSummary = byId('modal-summary');
+
+        /* ==================================================================
+           VALIDATOR FUNCTIONS (pure, reusable)
+           ================================================================== */
+
+        /** Validate full name: required, min 2 chars, letters/spaces/hyphens/apostrophes */
+        function validateName(value) {
+            value = value.trim();
+            if (!value) return { valid: false, message: 'Full name is required' };
+            if (value.length < 2) return { valid: false, message: 'Name must be at least 2 characters' };
+            if (!/^[a-zA-Z\s'\-]+$/.test(value)) return { valid: false, message: 'Name can only contain letters, spaces, hyphens, and apostrophes' };
+            return { valid: true, message: '' };
+        }
+
+        /** Validate email: required, RFC-compliant regex */
+        function validateEmail(value) {
+            value = value.trim();
+            if (!value) return { valid: false, message: 'Email address is required' };
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return { valid: false, message: 'Please enter a valid email address' };
+            return { valid: true, message: '' };
+        }
+
+        /** Validate phone: required, 10-15 digits (allows +, spaces, hyphens, parentheses) */
+        function validatePhone(value) {
+            value = value.trim();
+            if (!value) return { valid: false, message: 'Phone number is required' };
+            var digitsOnly = value.replace(/[\s\-\(\)\+]/g, '');
+            if (!/^\d{10,15}$/.test(digitsOnly)) return { valid: false, message: 'Enter a valid phone number (10-15 digits)' };
+            return { valid: true, message: '' };
+        }
+
+        /** Validate password: required, min 8 chars. Returns strength level. */
+        function validatePassword(value) {
+            if (!value) return { valid: false, message: 'Password is required', strength: '' };
+            if (value.length < 8) return { valid: false, message: 'Password must be at least 8 characters', strength: 'weak' };
+
+            var score = 0;
+            if (value.length >= 12) score++;
+            if (/[A-Z]/.test(value)) score++;
+            if (/[a-z]/.test(value)) score++;
+            if (/[0-9]/.test(value)) score++;
+            if (/[^A-Za-z0-9]/.test(value)) score++;
+
+            var strength = 'weak';
+            if (score >= 4) strength = 'strong';
+            else if (score >= 2) strength = 'medium';
+
+            return { valid: true, message: '', strength: strength };
+        }
+
+        /** Validate confirm password: must match password */
+        function validateConfirmPassword(password, confirm) {
+            if (!confirm) return { valid: false, message: 'Please confirm your password' };
+            if (password !== confirm) return { valid: false, message: 'Passwords do not match' };
+            return { valid: true, message: '' };
+        }
+
+        /** Validate select dropdown: must pick a non-empty option */
+        function validateSelect(value) {
+            if (!value) return { valid: false, message: 'Please select a study goal' };
+            return { valid: true, message: '' };
+        }
+
+        /** Validate message: required, min 10 chars */
+        function validateMessage(value) {
+            value = value.trim();
+            if (!value) return { valid: false, message: 'Message is required' };
+            if (value.length < 10) return { valid: false, message: 'Message must be at least 10 characters' };
+            return { valid: true, message: '' };
+        }
+
+        /** Validate checkbox: must be checked */
+        function validateCheckbox(checked) {
+            if (!checked) return { valid: false, message: 'You must accept the Terms of Service' };
+            return { valid: true, message: '' };
+        }
+
+        /* ==================================================================
+           UI HELPER FUNCTIONS
+           ================================================================== */
+
+        /** Show error state on an input */
+        function showError(inputEl, message) {
+            if (!inputEl) return;
+            inputEl.classList.add('input-error');
+            inputEl.classList.remove('input-valid');
+
+            // Hide checkmark
+            var check = inputEl.closest('.form-input-wrap');
+            if (check) {
+                var checkEl = check.querySelector('.form-check');
+                if (checkEl) checkEl.classList.remove('visible');
+            }
+
+            // Show error message
+            var errorId = inputEl.id + '-error';
+            var errorEl = byId(errorId);
+            if (errorEl) errorEl.textContent = message;
+        }
+
+        /** Show valid state on an input */
+        function showValid(inputEl) {
+            if (!inputEl) return;
+            inputEl.classList.remove('input-error');
+            inputEl.classList.add('input-valid');
+
+            // Show checkmark
+            var wrap = inputEl.closest('.form-input-wrap');
+            if (wrap) {
+                var checkEl = wrap.querySelector('.form-check');
+                if (checkEl) checkEl.classList.add('visible');
+            }
+
+            // Clear error message
+            var errorId = inputEl.id + '-error';
+            var errorEl = byId(errorId);
+            if (errorEl) errorEl.textContent = '';
+        }
+
+        /** Clear validation state (neutral) */
+        function clearValidation(inputEl) {
+            if (!inputEl) return;
+            inputEl.classList.remove('input-error', 'input-valid');
+
+            var wrap = inputEl.closest('.form-input-wrap');
+            if (wrap) {
+                var checkEl = wrap.querySelector('.form-check');
+                if (checkEl) checkEl.classList.remove('visible');
+            }
+
+            var errorId = inputEl.id + '-error';
+            var errorEl = byId(errorId);
+            if (errorEl) errorEl.textContent = '';
+        }
+
+        /** Show checkbox error */
+        function showCheckboxError(message) {
+            var customEl = form.querySelector('.checkbox-custom');
+            if (customEl) customEl.classList.add('checkbox-error');
+            var errorEl = byId('contact-terms-error');
+            if (errorEl) errorEl.textContent = message;
+        }
+
+        /** Clear checkbox error */
+        function clearCheckboxError() {
+            var customEl = form.querySelector('.checkbox-custom');
+            if (customEl) customEl.classList.remove('checkbox-error');
+            var errorEl = byId('contact-terms-error');
+            if (errorEl) errorEl.textContent = '';
+        }
+
+        /** Update password strength meter */
+        function updateStrengthMeter(strength) {
+            if (!strengthBar || !strengthLabel || !strengthWrap) return;
+
+            if (!strength) {
+                strengthWrap.classList.remove('visible');
+                strengthBar.className = 'strength-bar';
+                strengthLabel.className = 'strength-label';
+                strengthLabel.textContent = '';
+                return;
+            }
+
+            strengthWrap.classList.add('visible');
+            strengthBar.className = 'strength-bar ' + strength;
+            strengthLabel.className = 'strength-label ' + strength;
+
+            var labels = { weak: 'Weak', medium: 'Medium', strong: 'Strong' };
+            strengthLabel.textContent = labels[strength] || '';
+        }
+
+        /** Show success modal */
+        function showSuccessModal(data) {
+            if (!modal) return;
+
+            // Build summary
+            if (modalSummary) {
+                modalSummary.innerHTML =
+                    '<strong>Name:</strong> ' + escapeHtml(data.name) + '<br>' +
+                    '<strong>Email:</strong> ' + escapeHtml(data.email) + '<br>' +
+                    '<strong>Phone:</strong> ' + escapeHtml(data.phone) + '<br>' +
+                    '<strong>Goal:</strong> ' + escapeHtml(data.goal);
+            }
+
+            modal.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+
+        /** Hide success modal */
+        function hideSuccessModal() {
+            if (!modal) return;
+            modal.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+
+        /** Escape HTML to prevent XSS in modal summary */
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /* ==================================================================
+           VALIDATE SINGLE FIELD
+           ================================================================== */
+        function validateField(fieldName) {
+            var result;
+
+            switch (fieldName) {
+                case 'name':
+                    result = validateName(fields.name.value);
+                    result.valid ? showValid(fields.name) : showError(fields.name, result.message);
+                    return result.valid;
+
+                case 'email':
+                    result = validateEmail(fields.email.value);
+                    result.valid ? showValid(fields.email) : showError(fields.email, result.message);
+                    return result.valid;
+
+                case 'phone':
+                    result = validatePhone(fields.phone.value);
+                    result.valid ? showValid(fields.phone) : showError(fields.phone, result.message);
+                    return result.valid;
+
+                case 'goal':
+                    result = validateSelect(fields.goal.value);
+                    result.valid ? showValid(fields.goal) : showError(fields.goal, result.message);
+                    return result.valid;
+
+                case 'password':
+                    result = validatePassword(fields.password.value);
+                    updateStrengthMeter(result.strength);
+                    if (result.valid) {
+                        showValid(fields.password);
+                    } else {
+                        showError(fields.password, result.message);
+                    }
+                    // Also re-validate confirm if it has a value
+                    if (fields.confirm && fields.confirm.value) {
+                        validateField('confirm');
+                    }
+                    return result.valid;
+
+                case 'confirm':
+                    result = validateConfirmPassword(fields.password.value, fields.confirm.value);
+                    result.valid ? showValid(fields.confirm) : showError(fields.confirm, result.message);
+                    return result.valid;
+
+                case 'message':
+                    result = validateMessage(fields.message.value);
+                    result.valid ? showValid(fields.message) : showError(fields.message, result.message);
+                    return result.valid;
+
+                case 'terms':
+                    result = validateCheckbox(fields.terms.checked);
+                    result.valid ? clearCheckboxError() : showCheckboxError(result.message);
+                    return result.valid;
+
+                default:
+                    return true;
+            }
+        }
+
+        /* ==================================================================
+           LIVE VALIDATION — Attach events
+           ================================================================== */
+        var textFields = ['name', 'email', 'phone', 'password', 'confirm', 'message'];
+
+        textFields.forEach(function (fieldName) {
+            var el = fields[fieldName];
+            if (!el) return;
+
+            // Validate on input (live as user types)
+            on(el, 'input', function () {
+                // Only validate live if user has already interacted (has value)
+                if (el.value.trim().length > 0 || el.classList.contains('input-error')) {
+                    validateField(fieldName);
+                } else {
+                    clearValidation(el);
+                    if (fieldName === 'password') updateStrengthMeter('');
+                }
+            });
+
+            // Validate on blur (when leaving field)
+            on(el, 'blur', function () {
+                if (el.value.trim().length > 0) {
+                    validateField(fieldName);
+                }
+            });
+        });
+
+        // Select dropdown — validate on change
+        if (fields.goal) {
+            on(fields.goal, 'change', function () {
+                validateField('goal');
+            });
+        }
+
+        // Checkbox — validate on change
+        if (fields.terms) {
+            on(fields.terms, 'change', function () {
+                if (fields.terms.checked) {
+                    clearCheckboxError();
+                }
+            });
+        }
+
+        /* ==================================================================
+           PASSWORD VISIBILITY TOGGLE
+           ================================================================== */
+        function initPasswordToggle(toggleId, inputEl) {
+            var toggle = byId(toggleId);
+            if (!toggle || !inputEl) return;
+
+            on(toggle, 'click', function () {
+                var isPassword = inputEl.type === 'password';
+                inputEl.type = isPassword ? 'text' : 'password';
+
+                var eyeIcon = toggle.querySelector('.eye-icon');
+                var eyeOffIcon = toggle.querySelector('.eye-off-icon');
+
+                if (eyeIcon) eyeIcon.style.display = isPassword ? 'none' : '';
+                if (eyeOffIcon) eyeOffIcon.style.display = isPassword ? '' : 'none';
+
+                inputEl.focus();
+            });
+        }
+
+        initPasswordToggle('password-toggle-1', fields.password);
+        initPasswordToggle('password-toggle-2', fields.confirm);
+
+        /* ==================================================================
+           FORM SUBMIT — Validate all, save, show modal, reset
+           ================================================================== */
         on(form, 'submit', function (e) {
             e.preventDefault();
 
-            var name = byId('contact-name');
-            var email = byId('contact-email');
-            var subject = byId('contact-subject');
-            var message = byId('contact-message');
+            // Validate all fields
             var isValid = true;
+            var allFields = ['name', 'email', 'phone', 'goal', 'password', 'confirm', 'message', 'terms'];
 
-            // Simple validation
-            [name, email, subject, message].forEach(function (input) {
-                if (!input.value.trim()) {
-                    input.classList.add('input-error');
-                    isValid = false;
-                } else {
-                    input.classList.remove('input-error');
+            allFields.forEach(function (fieldName) {
+                var fieldValid = validateField(fieldName);
+                if (!fieldValid) isValid = false;
+            });
+
+            if (!isValid) {
+                // Scroll to first error
+                var firstError = form.querySelector('.input-error, .checkbox-error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+                return;
+            }
+
+            // Collect form data
+            var goalSelect = fields.goal;
+            var goalText = goalSelect.options[goalSelect.selectedIndex].text;
+
+            var formData = {
+                name: fields.name.value.trim(),
+                email: fields.email.value.trim(),
+                phone: fields.phone.value.trim(),
+                goal: goalText,
+                goalValue: fields.goal.value,
+                message: fields.message.value.trim(),
+                termsAccepted: true,
+                submittedAt: new Date().toISOString()
+            };
+
+            // Save to localStorage
+            try {
+                var existing = JSON.parse(localStorage.getItem('studyhub-contacts') || '[]');
+                existing.push(formData);
+                localStorage.setItem('studyhub-contacts', JSON.stringify(existing));
+                console.log('%c📋 Form data saved to localStorage', 'color: #10b981; font-weight: bold;', formData);
+            } catch (err) {
+                console.warn('localStorage save failed:', err);
+            }
+
+            // Show success modal
+            showSuccessModal(formData);
+
+            // Reset form
+            form.reset();
+
+            // Clear all validation states
+            allFields.forEach(function (fieldName) {
+                if (fieldName === 'terms') {
+                    clearCheckboxError();
+                } else if (fields[fieldName]) {
+                    clearValidation(fields[fieldName]);
                 }
             });
 
-            // Email format check
-            if (email && email.value.trim()) {
-                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email.value.trim())) {
-                    email.classList.add('input-error');
-                    isValid = false;
-                }
-            }
+            // Reset password strength meter
+            updateStrengthMeter('');
 
-            if (isValid) {
-                // Simulate success
-                var submitBtn = byId('contact-submit');
-                submitBtn.textContent = '✓ Sent!';
-                submitBtn.style.pointerEvents = 'none';
-                form.reset();
-
-                // Reset char counter
-                var charCount = byId('char-count');
-                var progressFill = byId('char-progress-fill');
-                if (charCount) charCount.textContent = '0';
-                if (progressFill) {
-                    progressFill.style.width = '0%';
-                    progressFill.classList.remove('warning', 'danger');
-                }
-
-                setTimeout(function () {
-                    submitBtn.innerHTML = 'Send Message <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
-                    submitBtn.style.pointerEvents = '';
-                }, 2500);
+            // Reset char counter
+            var charCount = byId('char-count');
+            var progressFill = byId('char-progress-fill');
+            if (charCount) charCount.textContent = '0';
+            if (progressFill) {
+                progressFill.style.width = '0%';
+                progressFill.classList.remove('warning', 'danger');
             }
         });
 
-        // Clear error on input
-        qsa('.form-input', form).forEach(function (input) {
-            on(input, 'input', function () {
-                input.classList.remove('input-error');
-            });
+        /* ==================================================================
+           MODAL CLOSE HANDLERS
+           ================================================================== */
+        on(modalCloseBtn, 'click', hideSuccessModal);
+
+        // Close on overlay click
+        on(modal, 'click', function (e) {
+            if (e.target === modal) hideSuccessModal();
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal && modal.classList.contains('visible')) {
+                hideSuccessModal();
+            }
         });
     }
 
