@@ -564,3 +564,26 @@ input {
         font-size: 1.8rem;
     }
 }
+
+/* --------------------------------------------------------------------------
+   AUTH PANEL TOGGLE (Login ↔ Signup)
+   -------------------------------------------------------------------------- */
+.auth-panel-hidden {
+    display: none;
+}
+
+#login-panel,
+#signup-panel {
+    animation: panelFadeIn 0.4s var(--ease-out) both;
+}
+
+@keyframes panelFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

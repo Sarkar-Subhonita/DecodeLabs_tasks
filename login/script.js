@@ -1,7 +1,8 @@
 /* ==========================================================================
-   StudyHub — Login Page Script
+   StudyHub — Login / Signup Page Script
    script.js — Client-side validation with Regex, error/success feedback,
-   preventDefault(), DOM manipulation, and Show Password toggle.
+   preventDefault(), DOM manipulation, Show Password toggle,
+   and Login ↔ Signup panel toggling.
    ========================================================================== */
 
 (function () {
@@ -10,7 +11,13 @@
     // ── Helper shortcuts ──────────────────────────────────────────────
     function byId(id) { return document.getElementById(id); }
 
-    // ── DOM References ────────────────────────────────────────────────
+    // ── DOM References — Panels ───────────────────────────────────────
+    var loginPanel    = byId('login-panel');
+    var signupPanel   = byId('signup-panel');
+    var showSignupBtn = byId('show-signup-btn');
+    var showLoginBtn  = byId('show-login-btn');
+
+    // ── DOM References — Login Form ───────────────────────────────────
     var form          = byId('login-form');
     var emailInput    = byId('email');
     var passwordInput = byId('password');
@@ -22,9 +29,57 @@
     var successMsg    = byId('success-message');
     var loginBtn      = byId('login-btn');
 
+    // ── DOM References — Signup Form ──────────────────────────────────
+    var signupForm       = byId('signup-form');
+    var signupName       = byId('signup-name');
+    var signupEmail      = byId('signup-email');
+    var signupPassword   = byId('signup-password');
+    var signupConfirm    = byId('signup-confirm');
+    var signupNameError  = byId('signup-name-error');
+    var signupEmailError = byId('signup-email-error');
+    var signupPwError    = byId('signup-password-error');
+    var signupConfError  = byId('signup-confirm-error');
+    var signupNameGroup  = byId('signup-name-group');
+    var signupEmailGroup = byId('signup-email-group');
+    var signupPwGroup    = byId('signup-password-group');
+    var signupConfGroup  = byId('signup-confirm-group');
+    var signupBtn        = byId('signup-btn');
+    var signupSuccessMsg = byId('signup-success-message');
+
     // ── Regex for email validation ────────────────────────────────────
     // Simple pattern: something@something.domain (min 2 char TLD)
     var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    // ==================================================================
+    //  PANEL TOGGLE — Login ↔ Signup
+    // ==================================================================
+
+    /**
+     * Switch between Login and Signup panels with animation.
+     */
+    function showPanel(panelToShow, panelToHide) {
+        panelToHide.classList.add('auth-panel-hidden');
+        panelToShow.classList.remove('auth-panel-hidden');
+
+        // Re-trigger fade-in animation
+        panelToShow.style.animation = 'none';
+        void panelToShow.offsetWidth; // Force reflow
+        panelToShow.style.animation = '';
+    }
+
+    if (showSignupBtn) {
+        showSignupBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            showPanel(signupPanel, loginPanel);
+        });
+    }
+
+    if (showLoginBtn) {
+        showLoginBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            showPanel(loginPanel, signupPanel);
+        });
+    }
 
     // ==================================================================
     //  VALIDATION FUNCTIONS
@@ -68,6 +123,44 @@
         return { valid: true, message: '' };
     }
 
+    /**
+     * Validate the name field.
+     * - Must not be empty.
+     * - Must be at least 2 characters long.
+     * Returns: { valid: boolean, message: string }
+     */
+    function validateName(value) {
+        value = value.trim();
+
+        if (value === '') {
+            return { valid: false, message: 'Full name is required.' };
+        }
+
+        if (value.length < 2) {
+            return { valid: false, message: 'Name must be at least 2 characters.' };
+        }
+
+        return { valid: true, message: '' };
+    }
+
+    /**
+     * Validate the confirm password field.
+     * - Must not be empty.
+     * - Must match the password field.
+     * Returns: { valid: boolean, message: string }
+     */
+    function validateConfirmPassword(password, confirmValue) {
+        if (confirmValue === '') {
+            return { valid: false, message: 'Please confirm your password.' };
+        }
+
+        if (confirmValue !== password) {
+            return { valid: false, message: 'Passwords do not match.' };
+        }
+
+        return { valid: true, message: '' };
+    }
+
     // ==================================================================
     //  UI FEEDBACK — Show error / success / clear states
     // ==================================================================
@@ -101,7 +194,7 @@
     }
 
     // ==================================================================
-    //  LIVE VALIDATION — Validate on blur and input
+    //  LIVE VALIDATION — Login Form (blur and input)
     // ==================================================================
 
     // Email — validate when user leaves the field
@@ -163,7 +256,7 @@
     });
 
     // ==================================================================
-    //  FORM SUBMISSION — preventDefault() + full validation
+    //  LOGIN FORM SUBMISSION — preventDefault() + full validation
     // ==================================================================
 
     form.addEventListener('submit', function (event) {
@@ -209,6 +302,10 @@
         // Disable the button briefly to prevent double-submit
         loginBtn.disabled = true;
 
+        // Store login state in localStorage
+        localStorage.setItem('studyhub-logged-in', 'true');
+        localStorage.setItem('studyhub-user-email', emailInput.value.trim());
+
         // Log to console for debugging
         console.log('%c✅ Login Successful!', 'color: #10b981; font-weight: bold;');
         console.log('   Email:', emailInput.value.trim());
@@ -218,5 +315,88 @@
             window.location.href = '../index.html';
         }, 2000);
     });
+
+    // ==================================================================
+    //  SIGNUP FORM SUBMISSION — preventDefault() + full validation
+    // ==================================================================
+
+    if (signupForm) {
+        signupForm.addEventListener('submit', function (event) {
+            // 🛑 Prevent default browser submission
+            event.preventDefault();
+
+            // Hide any previous success message
+            signupSuccessMsg.classList.remove('visible');
+
+            // Validate all fields
+            var nameResult    = validateName(signupName.value);
+            var emailResult   = validateEmail(signupEmail.value);
+            var pwResult      = validatePassword(signupPassword.value);
+            var confResult    = validateConfirmPassword(signupPassword.value, signupConfirm.value);
+            var isValid = true;
+
+            // Name validation
+            if (!nameResult.valid) {
+                showError(signupNameGroup, signupNameError, nameResult.message);
+                isValid = false;
+            } else {
+                showValid(signupNameGroup, signupNameError);
+            }
+
+            // Email validation
+            if (!emailResult.valid) {
+                showError(signupEmailGroup, signupEmailError, emailResult.message);
+                isValid = false;
+            } else {
+                showValid(signupEmailGroup, signupEmailError);
+            }
+
+            // Password validation
+            if (!pwResult.valid) {
+                showError(signupPwGroup, signupPwError, pwResult.message);
+                isValid = false;
+            } else {
+                showValid(signupPwGroup, signupPwError);
+            }
+
+            // Confirm password validation
+            if (!confResult.valid) {
+                showError(signupConfGroup, signupConfError, confResult.message);
+                isValid = false;
+            } else {
+                showValid(signupConfGroup, signupConfError);
+            }
+
+            // If any field failed, focus the first error field and stop
+            if (!isValid) {
+                var firstErrorInput = signupForm.querySelector('.error .form-input');
+                if (firstErrorInput) {
+                    firstErrorInput.focus();
+                }
+                return;
+            }
+
+            // ✅ All validations passed — show success message!
+            signupSuccessMsg.classList.add('visible');
+
+            // Disable the button briefly to prevent double-submit
+            signupBtn.disabled = true;
+
+            // Store login state in localStorage
+            localStorage.setItem('studyhub-logged-in', 'true');
+            localStorage.setItem('studyhub-user-email', signupEmail.value.trim());
+            localStorage.setItem('studyhub-user-name', signupName.value.trim());
+
+            // Log to console for debugging
+            console.log('%c✅ Signup Successful!', 'color: #10b981; font-weight: bold;');
+            console.log('   Name:', signupName.value.trim());
+            console.log('   Email:', signupEmail.value.trim());
+
+            // Redirect to home page after a short delay
+            setTimeout(function () {
+                window.location.href = '../index.html';
+            }, 2000);
+        });
+    }
 
 })();

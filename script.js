@@ -557,6 +557,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+    /* =======================================================================
+       14. AUTH STATE CHECK
+       Hides the Login button in the nav if the user is already logged in.
+       ======================================================================= */
+    function initAuthCheck() {
+        var loginItem = byId('nav-login-item');
+        if (!loginItem) return;
+
+        var isLoggedIn = localStorage.getItem('studyhub-logged-in') === 'true';
+        if (isLoggedIn) {
+            loginItem.style.display = 'none';
+        }
+    }
 
     /* =======================================================================
 
@@ -574,6 +587,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initScrollReveal();
     initMobileNavClose();
     initActiveNavHighlight();
+    initAuthCheck();
 
     console.log('%c✨ StudyHub Interactive Features initialized!', 'color: #7c3aed; font-size: 14px; font-weight: bold;');
 });
